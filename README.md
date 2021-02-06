@@ -1,0 +1,1 @@
+This is my workspace for testing Community Earth System Model (CESM) cases, which I use with the `escomp/cesm-lab-2.2` Docker image.

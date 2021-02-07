@@ -52,7 +52,7 @@ def chdir(dir):
         chdir_(cwd)
 
 
-def run_case(conf, build_lock):
+def run_case(conf, lock):
     name, iop = conf["name"], conf["iop"]
     del conf["name"], conf["iop"]
 
@@ -67,7 +67,7 @@ def run_case(conf, build_lock):
     if not exists(f"{clone_dir}/timing"):
         rmtree(clone_dir, ignore_errors=True)
 
-        with build_lock:
+        with lock:
             if not exists(cesm_exe):
                 rmtree(base_dir, ignore_errors=True)
 
@@ -99,11 +99,11 @@ def run_case(conf, build_lock):
 
 
 def run_cases(df):
-    build_lock = Manager().Lock()
+    lock = Manager().Lock()
     confs = [dict(x[1]) for x in df.iterrows()]
 
     # XXX: Don't do this if your system has a job scheduler.
     with Pool() as p:
-        for _ in tqdm(p.imap(partial(run_case, build_lock=build_lock), confs),
+        for _ in tqdm(p.imap_unordered(partial(run_case, lock=lock), confs),
                       total=len(confs), mininterval=0., miniters=1):
             pass

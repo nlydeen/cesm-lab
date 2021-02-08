@@ -15,7 +15,7 @@ CESM_ROOT = "/opt/ncar/cesm2"
 SCRIPT_DIR = f"{CESM_ROOT}/cime/scripts"
 MODS_DIR = f"{CESM_ROOT}/components/cam/cime_config/usermods_dirs"
 
-CASE_ROOT = f"/tmp/cases"
+CASE_ROOT = "/tmp/cases"
 ARCHIVE_ROOT = f"{environ['HOME']}/archive"
 
 IOP_CASE_DIR = f"{CASE_ROOT}/scm_ppe.base"
@@ -47,27 +47,32 @@ def plan_cases(iops, param_space, n_cases):
 def run_case(config):
     name, iop = config["name"], config["iop"]
     del config["name"], config["iop"]
-    user_nl_cam = dict(config)
 
-    clone_dir = f"{CASE_ROOT}/{name}"
+    user_nl_cam = dict(config)
+    user_nl_cam["nhtfrq"] = -1
+
+    case_dir = f"{CASE_ROOT}/{name}"
 
     if not exists(f"{ARCHIVE_ROOT}/{name}"):
-        rmtree(clone_dir, ignore_errors=True)
+        rmtree(case_dir, ignore_errors=True)
 
         assert call([f"{SCRIPT_DIR}/create_clone",
                      "--clone", IOP_CASE_DIR,
                      "--user-mods-dir", f"{MODS_DIR}/scam_{iop}",
                      "--keepexe",
-                     "--cime-output-root", clone_dir,
-                     "--case", clone_dir]) == 0
+                     "--cime-output-root", case_dir,
+                     "--case", case_dir]) == 0
 
-        with open(f"{clone_dir}/user_nl_cam", "a") as f:
+        with open(f"{case_dir}/user_nl_cam", "a") as f:
             for k, v in user_nl_cam.items():
                 print(f"{k} = {v}", file=f)
 
-        assert call("./case.submit", cwd=clone_dir) == 0
+        assert call(["./xmlchange", "STOP_N=14,STOP_OPTION=ndays"],
+                    cwd=case_dir) == 0
 
-        rmtree(clone_dir, ignore_errors=True)
+        assert call("./case.submit", cwd=case_dir) == 0
+
+        rmtree(case_dir, ignore_errors=True)
 
 
 def run_cases(df):

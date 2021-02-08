@@ -1,21 +1,24 @@
 import pandas as pd
 import sobol
 
-from contextlib import contextmanager
-from functools import partial
 from itertools import product
-from multiprocessing import Manager, Pool
-from os import chdir as chdir_, environ, getcwd, system
+from multiprocessing import Pool
+from os import environ
 from os.path import exists
 from shutil import rmtree
-from time import sleep
+from subprocess import call
 from tqdm.notebook import tqdm
 
 
 CESM_ROOT = "/opt/ncar/cesm2"
+
 SCRIPT_DIR = f"{CESM_ROOT}/cime/scripts"
-IOP_DIR = f"{CESM_ROOT}/components/cam/cime_config/usermods_dirs"
+MODS_DIR = f"{CESM_ROOT}/components/cam/cime_config/usermods_dirs"
+
 CASE_ROOT = f"{environ['HOME']}/cases"
+ARCHIVE_ROOT = f"{environ['HOME']}/archive"
+
+IOP_CASE_DIR = f"{CASE_ROOT}/scm_ppe.base"
 
 
 def qmc(iops, space, n):
@@ -41,69 +44,48 @@ def plan_cases(iops, param_space, n_cases):
     return df
 
 
-@contextmanager
-def chdir(dir):
-    cwd = getcwd()
+def run_case(config):
+    name, iop = config["name"], config["iop"]
+    del config["name"], config["iop"]
 
-    try:
-        chdir_(dir)
-        yield
-    finally:
-        chdir_(cwd)
-
-
-def run_case(conf, lock):
-    name, iop = conf["name"], conf["iop"]
-    del conf["name"], conf["iop"]
-
-    user_nl_cam = dict(conf)
-    user_nl_cam["use_topo_file"] = ".true."
-
-    base_dir = f"{CASE_ROOT}/scm_ppe.{iop}"
+    user_nl_cam = dict(config)
     clone_dir = f"{CASE_ROOT}/{name}"
 
-    cesm_exe = f"{base_dir}/bld/cesm.exe"
-
-    if not exists(f"{clone_dir}/timing"):
+    if not exists(f"{ARCHIVE_ROOT}/{name}"):
         rmtree(clone_dir, ignore_errors=True)
 
-        with lock:
-            if not exists(cesm_exe):
-                rmtree(base_dir, ignore_errors=True)
+        assert call([f"{SCRIPT_DIR}/create_clone",
+                     "--clone", IOP_CASE_DIR,
+                     "--user-mods-dir", f"{MODS_DIR}/scam_{iop}",
+                     "--keepexe",
+                     "--cime-output-root", clone_dir,
+                     "--case", clone_dir]) == 0
 
-                assert system(f"{SCRIPT_DIR}/create_newcase"
-                              f" --compset FSCAM "
-                              f" --res T42_T42"
-                              f" --user-mods-dir {IOP_DIR}/scam_{iop}"
-                              f" --case {base_dir}") == 0, \
-                       "create_newcase failed"
+        with open(f"{clone_dir}/user_nl_cam", "a") as f:
+            for k, v in user_nl_cam.items():
+                print(f"{k} = {v}", file=f)
 
-                with chdir(base_dir):
-                    assert system("./case.setup") == 0, "./case.setup failed"
-                    assert system("./case.build") == 0, "./case.build failed"
+        assert call("./case.submit", cwd=clone_dir) == 0
 
-        while not exists(cesm_exe):
-            sleep(1)
-
-        assert system(f"{SCRIPT_DIR}/create_clone"
-                      f" --clone {base_dir}"
-                       " --keepexe"
-                      f" --case {clone_dir}") == 0, "create_clone failed"
-
-        with chdir(clone_dir):
-            with open("user_nl_cam", "a") as f:
-                for k, v in user_nl_cam.items():
-                    print(f"{k} = {v}", file=f)
-
-            assert system("./case.submit") == 0, "./case.submit failed"
+        rmtree(clone_dir, ignore_errors=True)
 
 
 def run_cases(df):
-    lock = Manager().Lock()
-    confs = [dict(x[1]) for x in df.iterrows()]
+    configs = [dict(x[1]) for x in df.iterrows()]
 
-    # XXX: Don't do this if your system has a job scheduler.
+    if not exists(f"{IOP_CASE_DIR}/bld/cesm.exe"):
+        rmtree(IOP_CASE_DIR, ignore_errors=True)
+
+        assert call([f"{SCRIPT_DIR}/create_newcase",
+                     "--compset", "FSCAM",
+                     "--res", "T42_T42",
+                     "--user-mods-dir", f"{MODS_DIR}/scam_mandatory",
+                     "--case", IOP_CASE_DIR]) == 0
+
+        assert call("./case.setup", cwd=IOP_CASE_DIR) == 0
+        assert call("./case.build", cwd=IOP_CASE_DIR) == 0
+
     with Pool() as p:
-        for _ in tqdm(p.imap_unordered(partial(run_case, lock=lock), confs),
-                      total=len(confs), mininterval=0., miniters=1):
+        for _ in tqdm(p.imap_unordered(run_case, configs), total=len(configs),
+                      mininterval=0., miniters=1):
             pass

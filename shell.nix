@@ -21,4 +21,4 @@ let
       tqdm
       xarray
     ]);
-in mkShell { buildInputs = [ duperemove ncview netcdf python ]; }
+in mkShell { buildInputs = [ ncview netcdf python ]; }

@@ -1,6 +1,5 @@
 .*
 /archive
-/cases
 /inputdata
 /tutorials
 __pycache__

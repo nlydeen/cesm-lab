@@ -15,7 +15,7 @@ CESM_ROOT = "/opt/ncar/cesm2"
 SCRIPT_DIR = f"{CESM_ROOT}/cime/scripts"
 MODS_DIR = f"{CESM_ROOT}/components/cam/cime_config/usermods_dirs"
 
-CASE_ROOT = f"{environ['HOME']}/cases"
+CASE_ROOT = f"/tmp/cases"
 ARCHIVE_ROOT = f"{environ['HOME']}/archive"
 
 IOP_CASE_DIR = f"{CASE_ROOT}/scm_ppe.base"
@@ -47,8 +47,8 @@ def plan_cases(iops, param_space, n_cases):
 def run_case(config):
     name, iop = config["name"], config["iop"]
     del config["name"], config["iop"]
-
     user_nl_cam = dict(config)
+
     clone_dir = f"{CASE_ROOT}/{name}"
 
     if not exists(f"{ARCHIVE_ROOT}/{name}"):

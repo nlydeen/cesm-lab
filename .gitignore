@@ -1,6 +1,6 @@
 .*
 /archive
 /inputdata
+/scm_ppe/cases.csv
 /tutorials
 __pycache__
-/scm_ppe/cases.csv

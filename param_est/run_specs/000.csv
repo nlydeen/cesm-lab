@@ -1,0 +1,6 @@
+theta,theta,setup,setup
+clubb_gamma_coef,micro_mg_dcs,stop_option,stop_n
+0.26,3e-4,ndays,1
+0.26,6e-4,ndays,1
+0.31,3e-4,ndays,1
+0.26,5e-4,ndays,1

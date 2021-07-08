@@ -3,6 +3,9 @@
 .*
 /archive
 /inputdata
+/param_est/*/run_specs/*
 /scm_ppe/cases.csv
 /tutorials
 __pycache__
+
+!/param_est/*/run_specs/000.csv

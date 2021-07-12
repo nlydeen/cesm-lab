@@ -12,14 +12,13 @@ from xarray import open_dataarray, open_mfdataset
 from common import REF_FILES, ARCHIVE_DIR, LAPL_DIR, REF_LAPL_FILE
 
 
-lapl_eofi = open_dataarray("laplacians.eofi.nc")
+lapl_eofi = open_dataarray("lapl.glo.eofi.nc")
 
 
-# TODO: Fix anomalous scaling.
 def compute_laplacians(files):
     sst = open_mfdataset(files).SST.interp_like(lapl_eofi)
 
-    return np.einsum("ikl,jkl->ji", sst, lapl_eofi)
+    return np.einsum("ikl,jkl->ij", lapl_eofi, sst)
 
 
 if __name__ == "__main__":

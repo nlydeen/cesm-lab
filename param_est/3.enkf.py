@@ -16,6 +16,7 @@ from common import LAPL_DIR, REF_LAPL_FILE, read_run_specs, write_run_specs
 delsole = True
 
 
+# TODO: Don't use `rpy2`, since it's not available on Cheyenne.
 def update(fs_ref, fs_ens, thetas, r=0.5):
     if delsole:
         r_["source"]("enkf_delsole.R")

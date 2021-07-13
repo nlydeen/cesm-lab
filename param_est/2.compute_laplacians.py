@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
 # $ module load python/3.7.9
 # $ ncar_pylib
 

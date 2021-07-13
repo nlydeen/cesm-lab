@@ -1,0 +1,15 @@
+name: param_est
+channels:
+  - defaults
+  - r
+dependencies:
+  - dask
+  - netcdf4
+  - numpy
+  - pandas
+  - python
+  - r-glmnet
+  - r-glmnetutils
+  - rpy2
+  - scipy
+  - xarray

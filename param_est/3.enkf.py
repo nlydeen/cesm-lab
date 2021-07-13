@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# $ module load python/3.7.9
-# $ ncar_pylib
+#!/usr/bin/env python3
+
+# $ conda env create
+# $ conda run -n param_est ./3.enkf.py
 
 import numpy as np
 
@@ -16,16 +17,14 @@ from common import LAPL_DIR, REF_LAPL_FILE, read_run_specs, write_run_specs
 delsole = True
 
 
-# TODO: Don't use `rpy2`, since it's not available on Cheyenne.
 def update(fs_ref, fs_ens, thetas, r=0.5):
     if delsole:
+        fs_ref = fs_ref.T
+        fs_ens = fs_ens.swapaxes(0, 1)
+
         r_["source"]("enkf_delsole.R")
-
         numpy2ri.activate()
-
-        thetas = globalenv["parameter.est.enkf"](
-            fs_ref.T, fs_ens.swapaxes(0, 1), thetas)[2].T
-
+        thetas = np.array(globalenv["parameter.est.enkf"](fs_ref, fs_ens, thetas)[2]).T
         numpy2ri.deactivate()
     else:
         f_mean_ref = fs_ref.mean(axis=1)

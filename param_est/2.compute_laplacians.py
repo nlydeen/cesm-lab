@@ -31,5 +31,6 @@ if __name__ == "__main__":
         lapl_file = join(LAPL_DIR, f"{case_name}.npy")
 
         if not exists(lapl_file):
-            files = sorted(glob(join(ARCHIVE_DIR, case_name, "atm/hist/*.nc")))
+            files = sorted(glob(join(ARCHIVE_DIR, case_name,
+                                     "atm/hist/*.cam.h0.*.nc")))
             np.save(lapl_file, compute_laplacians(files))

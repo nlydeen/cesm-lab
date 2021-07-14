@@ -6,6 +6,7 @@
 /param_est/*/run_specs/*
 /scm_ppe/cases.csv
 /tutorials
+_*.py
 __pycache__
 
 !/param_est/*/run_specs/000.csv

@@ -2,11 +2,12 @@
 *.png
 .*
 /archive
+/cesm_2.1.1
 /inputdata
 /param_est/*/run_specs/*
 /scm_ppe/cases.csv
 /tutorials
-_*.py
+_*
 __pycache__
 
 !/param_est/*/run_specs/000.csv

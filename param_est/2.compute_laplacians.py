@@ -24,7 +24,12 @@ def compute_laplacians(files):
 
 if __name__ == "__main__":
     if not exists(REF_LAPL_FILE):
-        np.save(REF_LAPL_FILE, compute_laplacians(REF_FILES))
+        if not exists("/glade/campaign"):
+            print("ERROR: Cannot access `/glade/campaign/`")
+            print("You must use Casper to access the control run.")
+            exit(1)
+        else:
+            np.save(REF_LAPL_FILE, compute_laplacians(REF_FILES))
 
     for case_name in filter(lambda x: x.startswith("param_est."),
                             listdir(ARCHIVE_DIR)):

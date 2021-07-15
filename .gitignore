@@ -4,7 +4,7 @@
 /archive
 /cesm_2.1.1
 /inputdata
-/param_est/*/run_specs/*
+/param_est/run_specs/*
 /scm_ppe/cases.csv
 /tutorials
 _*

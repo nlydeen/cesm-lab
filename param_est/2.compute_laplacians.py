@@ -1,41 +1,49 @@
-#!/usr/bin/env python3
-
-# $ module load python/3.7.9
-# $ ncar_pylib
+#!/usr/bin/env python
 
 import numpy as np
 
 from glob import glob
 from os import listdir
-from os.path import exists, join
-from xarray import open_dataarray, open_mfdataset
+from os.path import exists
+from xarray import DataArray, Dataset, open_dataarray, open_mfdataset
 
-from common import REF_FILES, ARCHIVE_DIR, LAPL_DIR, REF_LAPL_FILE
-
-
-lapl_eofi = open_dataarray("lapl.glo.eofi.nc")
+from common import ACCOUNT, HIST_DIR, LAPL_DIR, REF_CASE
 
 
-def compute_laplacians(files):
-    sst = open_mfdataset(files).SST.interp_like(lapl_eofi)
+def compute_laplacians(hist_files, case, fields=["SST"],
+                       eofi=open_dataarray("lapl.eofi.nc")):
+    lapl_file = f"{LAPL_DIR}/{case}.nc"
 
-    return np.einsum("ikl,jkl->ij", lapl_eofi, sst)
+    if exists(lapl_file):
+        return
+
+    hist_files = sorted(hist_files)
+    hist = open_mfdataset(hist_files).interp_like(eofi)
+
+    lapls = {}
+
+    for field in fields:
+        lapls[field] = DataArray(np.einsum("ikl,jkl->ij", eofi, hist[field]),
+                                 dims=["lapl", "time"])
+
+    Dataset(lapls, coords={"lapl": np.arange(len(eofi)) + 1,
+                           "time": hist.time},
+            attrs={"source_files": hist_files}).to_netcdf(lapl_file)
 
 
 if __name__ == "__main__":
-    if not exists(REF_LAPL_FILE):
-        if not exists("/glade/campaign"):
-            print("ERROR: Cannot access `/glade/campaign/`")
-            print("You must use Casper to access the control run.")
-            exit(1)
-        else:
-            np.save(REF_LAPL_FILE, compute_laplacians(REF_FILES))
+    if (not exists(f"{LAPL_DIR}/{REF_CASE}.nc")
+          and not exists("/glade/campaign")):
+        print(f"ERROR: You must use Casper (`execcasper -A {ACCOUNT}`) to"
+              " compute Laplacians for the reference case.")
+        exit(1)
+    else:
+        hist_files = glob("/glade/campaign/collections/cmip/CMIP6"
+                          f"/timeseries-cmip6/{REF_CASE}/atm/proc/tseries"
+                          f"/month_1/{REF_CASE}.cam.h0.SST.*.nc")
+        compute_laplacians(hist_files, REF_CASE)
 
-    for case_name in filter(lambda x: x.startswith("param_est."),
-                            listdir(ARCHIVE_DIR)):
-        lapl_file = join(LAPL_DIR, f"{case_name}.npy")
-
-        if not exists(lapl_file):
-            files = sorted(glob(join(ARCHIVE_DIR, case_name,
-                                     "atm/hist/*.cam.h0.*.nc")))
-            np.save(lapl_file, compute_laplacians(files))
+    for case in sorted(listdir(HIST_DIR)):
+        if case.startswith("param_est."):
+            hist_files = glob(f"{HIST_DIR}/{case}/atm/hist/*.cam.h0.*.nc")
+            compute_laplacians(hist_files, case)

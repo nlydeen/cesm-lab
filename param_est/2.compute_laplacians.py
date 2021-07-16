@@ -5,6 +5,7 @@ import numpy as np
 from glob import glob
 from os import listdir
 from os.path import exists
+from tqdm import tqdm
 from xarray import DataArray, Dataset, open_dataarray, open_mfdataset
 
 from common import ACCOUNT, HIST_DIR, LAPL_DIR, REF_CASE
@@ -25,6 +26,7 @@ def compute_laplacians(hist_files, case, fields=["SST"],
     for field in fields:
         lapls[field] = DataArray(np.einsum("ikl,jkl->ij", eofi, hist[field]),
                                  dims=["lapl", "time"])
+        lapls[field].attrs.update(hist[field].attrs)
 
     Dataset(lapls, coords={"lapl": np.arange(len(eofi)) + 1,
                            "time": hist.time},
@@ -43,7 +45,7 @@ if __name__ == "__main__":
                           f"/month_1/{REF_CASE}.cam.h0.SST.*.nc")
         compute_laplacians(hist_files, REF_CASE)
 
-    for case in sorted(listdir(HIST_DIR)):
+    for case in tqdm(sorted(listdir(HIST_DIR))):
         if case.startswith("param_est."):
             hist_files = glob(f"{HIST_DIR}/{case}/atm/hist/*.cam.h0.*.nc")
             compute_laplacians(hist_files, case)

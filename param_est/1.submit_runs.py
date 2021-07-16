@@ -30,7 +30,7 @@ def submit_run(i, run_spec_row):
 
         "RUN_REFCASE": REF_CASE,
         "RUN_REFDIR": f"/glade/work/{USER}/restarts/{REF_CASE}"
-                      "/{run_spec.meta.start_date}-00000",
+                      f"/{run_spec.meta.start_date}-00000",
 
         "RUN_REFDATE": run_spec.meta.start_date,
         "RUN_STARTDATE": run_spec.meta.start_date,

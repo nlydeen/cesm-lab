@@ -31,11 +31,11 @@ if __name__ == "__main__":
         t_c = t.ppf(0.975, hist.shape[1] - 1)
         half_ci = t_c * hist[:, :, i].std(ddof=1, axis=1) / np.sqrt(n_params)
 
-        ax.plot(means, color="blue", label="Mean")
+        ax.plot(means, color="#5e81ac", label="Mean")
         ax.fill_between(np.arange(n_iter), means - half_ci, means + half_ci,
-                        color="blue", alpha=0.25, label="95% CI")
+                        color="#5e81ac", alpha=0.25, label="95% CI")
 
-        ax.axhline(REF_VALUES[i], color="red", linestyle="--",
+        ax.axhline(REF_VALUES[i], color="#bf616a", linestyle="--",
                    label="Reference")
 
         ax.set_title(param_names[i])

@@ -18,7 +18,7 @@ LAPL_DIR = f"/glade/work/{USER}/laplacians"
 RUN_SPECS_DIR = f"{dirname(__file__)}/run_specs"
 
 
-for x in [HIST_DIR, LAPL_DIR, RUN_SPECS_DIR]:
+for x in [HIST_DIR, LAPL_DIR]:
     makedirs(x, exist_ok=True)
 
 

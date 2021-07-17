@@ -37,8 +37,11 @@ if __name__ == "__main__":
         ax.set_title(param_names[i])
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
+        ax.set_xlim(0, n_iter - 1)
+        ax.grid(color="k", alpha=0.05)
+
         if i == 0:
             ax.legend()
 
     plt.tight_layout()
-    plt.savefig("history.png")
+    plt.savefig("history.png", dpi=300)

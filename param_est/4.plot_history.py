@@ -35,7 +35,8 @@ if __name__ == "__main__":
         ax.fill_between(np.arange(n_iter), means - half_ci, means + half_ci,
                         color="blue", alpha=0.25, label="95% CI")
 
-        ax.axhline(REF_VALUES[i], color="red", linestyle="--")
+        ax.axhline(REF_VALUES[i], color="red", linestyle="--",
+                   label="Reference")
 
         ax.set_title(param_names[i])
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))

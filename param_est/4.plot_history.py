@@ -24,15 +24,19 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(hist.shape[2], sharex=True)
 
     for i, ax in enumerate(axes):
-        ax.plot(hist[:, :, i].mean(axis=1), color="blue")
+        ax.plot(hist[:, :, i].mean(axis=1), color="blue", label="Mean")
 
         low, high = np.percentile(hist[:, :, i], [25, 75], axis=1)
-        ax.fill_between(np.arange(n_iter), low, high, color="blue", alpha=0.25)
+        ax.fill_between(np.arange(n_iter), low, high, color="blue", alpha=0.25,
+                        label="25th/75th %iles")
 
         ax.axhline(REF_VALUES[i], color="red", linestyle="--")
 
         ax.set_title(param_names[i])
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
+        if i == 0:
+            ax.legend()
 
     plt.tight_layout()
     plt.savefig("history.png")

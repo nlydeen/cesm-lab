@@ -4,6 +4,7 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from scipy.stats import t
 
 from common import REF_VALUES, get_run_specs_info, read_run_specs
 
@@ -26,7 +27,9 @@ if __name__ == "__main__":
 
     for i, ax in enumerate(axes):
         means = hist[:, :, i].mean(axis=1)
-        half_ci = 1.96 * hist[:, :, i].std(axis=1) / np.sqrt(n_params)
+
+        t_c = t.ppf(0.975, hist.shape[1] - 1)
+        half_ci = t_c * hist[:, :, i].std(ddof=1, axis=1) / np.sqrt(n_params)
 
         ax.plot(means, color="blue", label="Mean")
         ax.fill_between(np.arange(n_iter), means - half_ci, means + half_ci,
